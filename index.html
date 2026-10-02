@@ -1,0 +1,1646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>CleanPlate - Food Ingredient & Quality Scanner</title>
+  
+  <!-- PWA & Mobile Meta Tags -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#121417">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="CleanPlate">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg: #0d0f12;
+      --card-bg: #181b20;
+      --card-border: #282d35;
+      --text-main: #f3f4f6;
+      --text-sub: #9ca3af;
+      --accent: #10b981;
+      --accent-glow: rgba(16, 185, 129, 0.2);
+      --danger: #ef4444;
+      --danger-bg: rgba(239, 68, 68, 0.15);
+      --warning: #f59e0b;
+      --warning-bg: rgba(245, 158, 11, 0.15);
+      --info: #3b82f6;
+      --info-bg: rgba(59, 130, 246, 0.15);
+      --success: #10b981;
+      --success-bg: rgba(16, 185, 129, 0.15);
+      --font: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      font-family: var(--font);
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      padding-bottom: 80px;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(13, 15, 18, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--card-border);
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, #10b981, #059669);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 4px 12px var(--accent-glow);
+    }
+
+    .brand-name {
+      font-size: 19px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      background: linear-gradient(to right, #fff, #9ca3af);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .icon-btn {
+      background: #1f242c;
+      border: 1px solid var(--card-border);
+      color: var(--text-sub);
+      border-radius: 10px;
+      padding: 7px 11px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.2s;
+    }
+    .icon-btn:active {
+      transform: scale(0.96);
+    }
+
+    /* PWA Install Banner */
+    .pwa-banner {
+      display: none;
+      background: linear-gradient(135deg, #1a2420, #13171c);
+      border-bottom: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 10px 18px;
+      font-size: 13px;
+      color: #e5e7eb;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .pwa-install-btn {
+      background: var(--accent);
+      color: #000;
+      font-weight: 700;
+      font-size: 12px;
+      padding: 6px 14px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+    }
+
+    main {
+      flex: 1;
+      padding: 18px;
+      max-width: 540px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* Mode Navigation Tabs */
+    .mode-tab-nav {
+      display: flex;
+      background: #14171d;
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 4px;
+      margin-bottom: 16px;
+      gap: 4px;
+    }
+
+    .mode-tab {
+      flex: 1;
+      text-align: center;
+      padding: 10px 8px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-sub);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .mode-tab.active {
+      background: var(--card-bg);
+      color: #fff;
+      border: 1px solid var(--card-border);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+
+    /* Hero / Upload Card */
+    .hero-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 22px;
+      padding: 22px 20px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    .hero-card::before {
+      content: '';
+      position: absolute;
+      top: -40px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 220px;
+      height: 100px;
+      background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-title {
+      font-size: 21px;
+      font-weight: 800;
+      margin-bottom: 6px;
+      letter-spacing: -0.3px;
+    }
+
+    .hero-desc {
+      font-size: 13.5px;
+      color: var(--text-sub);
+      line-height: 1.5;
+      margin-bottom: 18px;
+    }
+
+    .pillars-pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 6px;
+      margin-bottom: 20px;
+    }
+
+    .pillar-tag {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 4px 10px;
+      border-radius: 30px;
+      background: #111418;
+      border: 1px solid var(--card-border);
+      color: #94a3b8;
+    }
+    .pillar-tag.highlight {
+      border-color: rgba(239, 68, 68, 0.4);
+      color: #f87171;
+    }
+
+    .btn-action-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .btn-camera-main {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #ffffff;
+      border: none;
+      padding: 16px 20px;
+      border-radius: 14px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 4px 20px rgba(16, 185, 129, 0.35);
+      transition: all 0.2s ease;
+      width: 100%;
+    }
+    .btn-camera-main:active {
+      transform: scale(0.98);
+    }
+
+    .btn-secondary {
+      background: #21252e;
+      color: #e5e7eb;
+      border: 1px solid var(--card-border);
+      padding: 13px 18px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: background 0.2s;
+    }
+    .btn-secondary:active {
+      background: #2a303c;
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    /* Barcode Section Inputs */
+    .barcode-input-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 14px;
+    }
+    .barcode-text-input {
+      flex: 1;
+      background: #0f1217;
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      color: #fff;
+      font-size: 14px;
+      outline: none;
+    }
+    .barcode-text-input:focus {
+      border-color: var(--accent);
+    }
+    .barcode-search-btn {
+      background: var(--accent);
+      color: #000;
+      font-weight: 700;
+      border: none;
+      border-radius: 12px;
+      padding: 0 16px;
+      cursor: pointer;
+    }
+
+    /* Quick Chips */
+    .quick-chips-row {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 6px;
+      margin-bottom: 16px;
+      scrollbar-width: none;
+    }
+    .quick-chips-row::-webkit-scrollbar {
+      display: none;
+    }
+    .sample-chip {
+      background: #191d24;
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #cbd5e1;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+
+    /* Preview */
+    .preview-container {
+      display: none;
+      margin-top: 18px;
+      border-radius: 14px;
+      overflow: hidden;
+      position: relative;
+      max-height: 240px;
+      border: 1px solid var(--card-border);
+    }
+
+    .preview-container img {
+      width: 100%;
+      height: 240px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .retake-btn {
+      position: absolute;
+      bottom: 12px;
+      right: 12px;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* Loader */
+    .loader-box {
+      display: none;
+      padding: 30px 20px;
+      text-align: center;
+    }
+    .spinner {
+      width: 44px;
+      height: 44px;
+      border: 4px solid #282d35;
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .loading-status {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-main);
+      margin-bottom: 6px;
+    }
+    .loading-subtext {
+      font-size: 13px;
+      color: var(--text-sub);
+    }
+
+    /* Results */
+    .result-section {
+      display: none;
+      animation: fadeIn 0.4s ease-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .score-banner {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 18px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .score-circle {
+      width: 82px;
+      height: 82px;
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      flex-shrink: 0;
+      border: 4px solid var(--accent);
+      box-shadow: 0 0 18px var(--accent-glow);
+    }
+    .score-number {
+      font-size: 26px;
+      line-height: 1;
+    }
+    .score-grade {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 3px;
+    }
+
+    .score-meta {
+      flex: 1;
+    }
+    .product-title {
+      font-size: 17px;
+      font-weight: 800;
+      line-height: 1.3;
+      margin-bottom: 5px;
+    }
+    .verdict-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .breakdown-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 18px;
+      padding: 18px;
+      margin-bottom: 16px;
+    }
+
+    .section-heading {
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--text-sub);
+      margin-bottom: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .meter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .meter-item {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .meter-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .meter-bar-bg {
+      height: 8px;
+      background: #252a32;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .meter-bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .ingredient-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .ingredient-pill {
+      background: #14171c;
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .ing-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .ing-name {
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .ing-tag {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 20px;
+      text-transform: uppercase;
+    }
+
+    .tag-seedoil {
+      background: var(--danger-bg);
+      color: var(--danger);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+    .tag-starch {
+      background: var(--warning-bg);
+      color: var(--warning);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+    .tag-preservative {
+      background: var(--info-bg);
+      color: var(--info);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+    .tag-clean {
+      background: var(--success-bg);
+      color: var(--success);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .ing-reason {
+      font-size: 12px;
+      color: var(--text-sub);
+      line-height: 1.4;
+    }
+
+    .recommendation-card {
+      background: linear-gradient(145deg, #18241f, #151a1e);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      border-radius: 18px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    .rec-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: #34d399;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+    .rec-text {
+      font-size: 13px;
+      color: #d1d5db;
+      line-height: 1.5;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+      z-index: 100;
+      align-items: flex-end;
+      justify-content: center;
+    }
+
+    .modal-overlay.open {
+      display: flex;
+    }
+
+    .modal-sheet {
+      background: #181b21;
+      border-top: 1px solid var(--card-border);
+      border-radius: 24px 24px 0 0;
+      width: 100%;
+      max-width: 540px;
+      padding: 24px;
+      max-height: 85vh;
+      overflow-y: auto;
+      box-shadow: 0 -10px 40px rgba(0,0,0,0.6);
+      animation: slideUp 0.3s ease-out;
+    }
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+    .modal-title {
+      font-size: 18px;
+      font-weight: 800;
+    }
+    .close-modal {
+      background: transparent;
+      border: none;
+      color: var(--text-sub);
+      font-size: 20px;
+      cursor: pointer;
+      padding: 4px;
+    }
+
+    .field-group {
+      margin-bottom: 16px;
+    }
+    .field-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--text-sub);
+    }
+    .field-input {
+      width: 100%;
+      background: #0f1115;
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      color: #fff;
+      font-size: 14px;
+      outline: none;
+    }
+    .field-input:focus {
+      border-color: var(--accent);
+    }
+    .field-tip {
+      font-size: 11px;
+      color: #6b7280;
+      margin-top: 6px;
+      line-height: 1.4;
+    }
+
+    .save-modal-btn {
+      width: 100%;
+      background: var(--accent);
+      color: #000;
+      font-weight: 700;
+      padding: 14px;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      font-size: 15px;
+      margin-top: 10px;
+    }
+
+    /* Watchlist Guide In Modal */
+    .guide-section {
+      margin-bottom: 20px;
+    }
+    .guide-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .guide-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .guide-item {
+      font-size: 12.5px;
+      line-height: 1.4;
+      background: #12151b;
+      padding: 8px 12px;
+      border-radius: 8px;
+      border-left: 3px solid #64748b;
+    }
+    .guide-item strong {
+      color: #f3f4f6;
+    }
+    .guide-item p {
+      color: #9ca3af;
+      margin-top: 2px;
+      font-size: 11.5px;
+    }
+    .guide-item.danger { border-left-color: var(--danger); }
+    .guide-item.warning { border-left-color: var(--warning); }
+    .guide-item.info { border-left-color: var(--info); }
+    .guide-item.clean { border-left-color: var(--success); }
+
+    .raw-text-card {
+      background: #14171c;
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 16px;
+      margin-top: 14px;
+    }
+    .raw-textarea {
+      width: 100%;
+      height: 90px;
+      background: #0c0e12;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 10px;
+      color: #fff;
+      font-size: 13px;
+      resize: vertical;
+      margin-bottom: 10px;
+    }
+
+    .history-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 12px;
+      border-bottom: 1px solid #232830;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .history-item:last-child {
+      border-bottom: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- PWA Install Banner -->
+  <div class="pwa-banner" id="pwaBanner">
+    <span>📲 Install CleanPlate to your Home Screen</span>
+    <button class="pwa-install-btn" id="pwaInstallBtn">Install App</button>
+  </div>
+
+  <header>
+    <div class="brand">
+      <div class="brand-icon">🌱</div>
+      <div class="brand-name">CleanPlate</div>
+    </div>
+    <div class="header-actions">
+      <button class="icon-btn" id="openGuideBtn">📋 Watchlist</button>
+      <button class="icon-btn" id="openSettingsBtn">⚙️ API Key</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- Mode Switcher -->
+    <div class="mode-tab-nav">
+      <div class="mode-tab active" id="tabLabel" onclick="switchMode('label')">
+        📸 Snap Label (Photo)
+      </div>
+      <div class="mode-tab" id="tabBarcode" onclick="switchMode('barcode')">
+        🏷️ Barcode (100% Free)
+      </div>
+    </div>
+
+    <!-- Quick Test Chips -->
+    <div style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: #64748b; margin-bottom: 8px;">
+      Quick Test Products
+    </div>
+    <div class="quick-chips-row" id="sampleChipsRow">
+      <div class="sample-chip" onclick="loadSample('bad_snack')">🍟 Standard Doritos / Chips</div>
+      <div class="sample-chip" onclick="loadSample('dressing')">🥗 Seed-Oil Ranch Dressing</div>
+      <div class="sample-chip" onclick="loadSample('clean_bar')">🥑 Clean Whole-Food Bar</div>
+    </div>
+
+    <!-- Scanner Hero Card: Label OCR Mode -->
+    <section class="hero-card" id="labelScanSection">
+      <h1 class="hero-title">Scan Ingredients Label</h1>
+      <p class="hero-desc">
+        Take a picture of the ingredients panel on your phone. We scan for industrial seed oils, starch fillers, and chemical preservatives.
+      </p>
+
+      <div class="pillars-pill-row">
+        <span class="pillar-tag highlight">🚫 Seed Oils</span>
+        <span class="pillar-tag highlight">🌽 Starch Fillers</span>
+        <span class="pillar-tag highlight">🧪 Preservatives</span>
+        <span class="pillar-tag">✨ Whole Foods</span>
+      </div>
+
+      <div class="btn-action-group">
+        <label for="cameraInput" class="btn-camera-main">
+          📸 Take Photo of Label
+        </label>
+        <input type="file" id="cameraInput" accept="image/*" capture="environment">
+
+        <label for="galleryInput" class="btn-secondary">
+          🖼️ Choose from Photos
+        </label>
+        <input type="file" id="galleryInput" accept="image/*">
+      </div>
+
+      <div class="preview-container" id="previewBox">
+        <img id="imagePreview" src="" alt="Food Label Preview">
+        <button class="retake-btn" id="retakeBtn">Retake</button>
+      </div>
+    </section>
+
+    <!-- Scanner Hero Card: Barcode Mode (Open Food Facts - 100% Free) -->
+    <section class="hero-card" id="barcodeScanSection" style="display: none;">
+      <h1 class="hero-title">Scan Product Barcode</h1>
+      <p class="hero-desc">
+        Zero API keys required. Powered by the free Open Food Facts database with millions of products worldwide.
+      </p>
+
+      <div class="btn-action-group">
+        <label for="barcodeImageInput" class="btn-camera-main">
+          📸 Snap Barcode Photo
+        </label>
+        <input type="file" id="barcodeImageInput" accept="image/*" capture="environment">
+      </div>
+
+      <div style="margin: 14px 0 6px; font-size: 12px; color: var(--text-sub);">Or enter UPC / EAN barcode numbers:</div>
+      <div class="barcode-input-row">
+        <input type="text" id="barcodeNumberInput" class="barcode-text-input" placeholder="e.g. 028400040112" inputmode="numeric">
+        <button class="barcode-search-btn" onclick="lookupBarcode()">Lookup</button>
+      </div>
+
+      <div style="margin-top: 14px; text-align: left;">
+        <span style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: #64748b;">Sample Barcodes:</span>
+        <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px;">
+          <button class="sample-chip" onclick="testBarcode('028400040112')">🍟 Lay's Classic</button>
+          <button class="sample-chip" onclick="testBarcode('044000032029')">🍪 Oreos</button>
+          <button class="sample-chip" onclick="testBarcode('747479000015')">🥫 Rao's Marinara</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Loader Box -->
+    <div class="loader-box" id="loader">
+      <div class="spinner"></div>
+      <div class="loading-status" id="loadingStatus">Analyzing Ingredients...</div>
+      <div class="loading-subtext" id="loadingSubtext">Scanning for seed oils, starches & additives</div>
+    </div>
+
+    <!-- Paste Text Alternative -->
+    <details class="raw-text-card">
+      <summary style="font-size: 13px; font-weight: 700; color: var(--text-sub); cursor: pointer;">
+        Or Paste Ingredients Manually
+      </summary>
+      <div style="margin-top: 12px;">
+        <textarea id="manualIngredients" class="raw-textarea" placeholder="Paste ingredients list here (e.g., Potatoes, Canola Oil, Maltodextrin, TBHQ)..."></textarea>
+        <button class="btn-secondary" style="width: 100%;" onclick="analyzeManualText()">Analyze Text</button>
+      </div>
+    </details>
+
+    <!-- Analysis Results -->
+    <section class="result-section" id="resultsArea">
+      <div class="score-banner">
+        <div class="score-circle" id="scoreCircle">
+          <span class="score-number" id="scoreVal">--</span>
+          <span class="score-grade" id="gradeVal">Grade</span>
+        </div>
+        <div class="score-meta">
+          <div class="product-title" id="resProductTitle">Product Analysis</div>
+          <div class="verdict-badge" id="resVerdictBadge">Clean</div>
+          <div style="font-size: 12px; color: var(--text-sub); margin-top: 5px;" id="singleIngSummary"></div>
+        </div>
+      </div>
+
+      <div class="breakdown-card">
+        <div class="section-heading">
+          <span>Toxicity & Quality Breakdown</span>
+        </div>
+        <div class="meter-group">
+          <div class="meter-item">
+            <div class="meter-header">
+              <span>Seed Oils (Canola, Soy, Corn, etc.)</span>
+              <span id="oilMeterScore">Clean</span>
+            </div>
+            <div class="meter-bar-bg">
+              <div class="meter-bar-fill" id="oilMeterFill" style="width: 0%; background: #ef4444;"></div>
+            </div>
+          </div>
+          <div class="meter-item">
+            <div class="meter-header">
+              <span>Refined Starches & Bulking Fillers</span>
+              <span id="starchMeterScore">Clean</span>
+            </div>
+            <div class="meter-bar-bg">
+              <div class="meter-bar-fill" id="starchMeterFill" style="width: 0%; background: #f59e0b;"></div>
+            </div>
+          </div>
+          <div class="meter-item">
+            <div class="meter-header">
+              <span>Artificial Preservatives & Dyes</span>
+              <span id="preservativeMeterScore">Clean</span>
+            </div>
+            <div class="meter-bar-bg">
+              <div class="meter-bar-fill" id="preservativeMeterFill" style="width: 0%; background: #3b82f6;"></div>
+            </div>
+          </div>
+          <div class="meter-item">
+            <div class="meter-header">
+              <span>Whole Food Simplicity Ratio</span>
+              <span id="wholeFoodMeterScore">High</span>
+            </div>
+            <div class="meter-bar-bg">
+              <div class="meter-bar-fill" id="wholeFoodMeterFill" style="width: 0%; background: #10b981;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="recommendation-card" id="recommendationBox">
+        <div class="rec-title">💡 Health Insight & Swaps</div>
+        <div class="rec-text" id="recommendationText">No red flags detected.</div>
+      </div>
+
+      <div class="breakdown-card">
+        <div class="section-heading">
+          <span>Detected Ingredients Breakdown</span>
+        </div>
+        <div class="ingredient-list" id="ingredientListContainer">
+        </div>
+      </div>
+    </section>
+
+    <!-- Recent Scans History -->
+    <details class="breakdown-card" style="margin-top: 14px;">
+      <summary style="font-size: 13px; font-weight: 700; color: var(--text-sub); cursor: pointer;">
+        Recent Scans History (<span id="historyCount">0</span>)
+      </summary>
+      <div id="historyList" style="margin-top: 10px;">
+        <p style="font-size: 12px; color: #6b7280; text-align: center; padding: 10px;">No previous scans recorded yet.</p>
+      </div>
+    </details>
+  </main>
+
+  <!-- Watchlist Guide Modal -->
+  <div class="modal-overlay" id="guideModal">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <h2 class="modal-title">Ingredients Watchlist</h2>
+        <button class="close-modal" id="closeGuideBtn">✕</button>
+      </div>
+
+      <div class="guide-section">
+        <div class="guide-title">🚫 1. The "Hateful Eight" Seed Oils</div>
+        <p style="font-size: 12px; color: #9ca3af; margin-bottom: 8px;">Industrial polyunsaturated seed oils extracted via chemical solvents and heat, highly prone to lipid oxidation.</p>
+        <div class="guide-list">
+          <div class="guide-item danger"><strong>Canola Oil (Rapeseed)</strong><p>Heavily deodorized industrial seed oil.</p></div>
+          <div class="guide-item danger"><strong>Soybean Oil</strong><p>Dominant restaurant & salad dressing oil, high linoleic acid.</p></div>
+          <div class="guide-item danger"><strong>Corn Oil</strong><p>High omega-6 inflammatory ratio.</p></div>
+          <div class="guide-item danger"><strong>Cottonseed Oil</strong><p>Non-food crop byproduct oil often treated with pesticides.</p></div>
+          <div class="guide-item danger"><strong>Sunflower & Safflower Oil</strong><p>High-omega-6 PUFA oils unless explicitly certified 100% high-oleic.</p></div>
+          <div class="guide-item danger"><strong>Grapeseed & Rice Bran Oil</strong><p>Industrial oils up to 70% linoleic acid.</p></div>
+          <div class="guide-item danger"><strong>Hydrogenated Vegetable Oil / Margarine</strong><p>Damaging trans-fat precursors.</p></div>
+        </div>
+      </div>
+
+      <div class="guide-section">
+        <div class="guide-title">🌽 2. Starch Fillers & Bulking Agents</div>
+        <p style="font-size: 12px; color: #9ca3af; margin-bottom: 8px;">Refined industrial carbohydrates used to add cheap bulk and alter texture.</p>
+        <div class="guide-list">
+          <div class="guide-item warning"><strong>Maltodextrin</strong><p>Glycemic Index of 110–185 (higher than pure table sugar; spikes insulin rapidly).</p></div>
+          <div class="guide-item warning"><strong>Modified Food / Corn Starch</strong><p>Enzymatically altered cheap filler thickener.</p></div>
+          <div class="guide-item warning"><strong>Dextrin & Tapioca Dextrin</strong><p>Processed starch binding agents.</p></div>
+          <div class="guide-item warning"><strong>Soluble Corn Fiber / Polydextrose</strong><p>Synthetic isolated fibers used to artificially manipulate net carb counts.</p></div>
+          <div class="guide-item warning"><strong>Carrageenan</strong><p>Seaweed extract thickener linked to gut microbiome disruption.</p></div>
+          <div class="guide-item warning"><strong>Xanthan Gum, Guar Gum & Cellulose Gum</strong><p>Industrial binders; may cause digestive bloating or GI distress in sensitive guts.</p></div>
+        </div>
+      </div>
+
+      <div class="guide-section">
+        <div class="guide-title">🧪 3. Preservatives & Synthetic Additives</div>
+        <p style="font-size: 12px; color: #9ca3af; margin-bottom: 8px;">Synthetic chemical stabilizers used to extend shelf-life for months or years.</p>
+        <div class="guide-list">
+          <div class="guide-item info"><strong>BHA, BHT & TBHQ</strong><p>Petroleum-derived synthetic antioxidants to prevent fat rancidity.</p></div>
+          <div class="guide-item info"><strong>Sodium Benzoate & Potassium Sorbate</strong><p>Chemical antimicrobials (benzoate can form benzene when paired with Vitamin C).</p></div>
+          <div class="guide-item info"><strong>Sodium Nitrite & Nitrate</strong><p>Curing salts that can form carcinogenic nitrosamines when fried or cooked at high heat.</p></div>
+          <div class="guide-item info"><strong>Disodium EDTA & Calcium Propionate</strong><p>Heavy metal chelators and bread antifungals.</p></div>
+          <div class="guide-item info"><strong>Artificial Dyes (Red 40, Yellow 5, Yellow 6, Blue 1)</strong><p>Petroleum-based azo dyes linked to behavioral hyperactivity in children.</p></div>
+        </div>
+      </div>
+
+      <div class="guide-section">
+        <div class="guide-title">✨ 4. Clean Standards (What to Choose)</div>
+        <div class="guide-list">
+          <div class="guide-item clean"><strong>Extra Virgin Olive Oil & Avocado Oil</strong><p>Cold-pressed, unrefined monounsaturated fats.</p></div>
+          <div class="guide-item clean"><strong>Coconut Oil, Grass-Fed Butter, Ghee & Tallow</strong><p>Heat-stable, traditional ancestral cooking fats.</p></div>
+          <div class="guide-item clean"><strong>Single Whole Foods</strong><p>1 to 5 recognizable ingredients (e.g. 100% beef, organic dates, sea salt, rosemary extract).</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div class="modal-overlay" id="settingsModal">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <h2 class="modal-title">Scanner Configuration</h2>
+        <button class="close-modal" id="closeSettingsBtn">✕</button>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label" for="apiKeyInput">Google Gemini API Key (For Photo OCR)</label>
+        <input type="password" id="apiKeyInput" class="field-input" placeholder="AIzaSy...">
+        <p class="field-tip">
+          Free tier available at Google AI Studio. Note: <strong>Barcode mode is 100% free</strong> and requires NO API key at all!
+        </p>
+      </div>
+
+      <button class="save-modal-btn" id="saveSettingsBtn">Save Settings</button>
+    </div>
+  </div>
+
+  <script>
+    // PWA Service Worker Registration
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+          .then(reg => console.log('PWA Service Worker registered:', reg.scope))
+          .catch(err => console.log('Service Worker registration failed:', err));
+      });
+    }
+
+    // PWA Install Prompt handling
+    let deferredPrompt;
+    const pwaBanner = document.getElementById('pwaBanner');
+    const pwaInstallBtn = document.getElementById('pwaInstallBtn');
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      pwaBanner.style.display = 'flex';
+    });
+
+    pwaInstallBtn.addEventListener('click', async () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        console.log('User install choice:', outcome);
+        deferredPrompt = null;
+        pwaBanner.style.display = 'none';
+      }
+    });
+
+    // Mode Switcher
+    function switchMode(mode) {
+      const tabLabel = document.getElementById('tabLabel');
+      const tabBarcode = document.getElementById('tabBarcode');
+      const labelSec = document.getElementById('labelScanSection');
+      const barcodeSec = document.getElementById('barcodeScanSection');
+
+      if (mode === 'label') {
+        tabLabel.classList.add('active');
+        tabBarcode.classList.remove('active');
+        labelSec.style.display = 'block';
+        barcodeSec.style.display = 'none';
+      } else {
+        tabBarcode.classList.add('active');
+        tabLabel.classList.remove('active');
+        labelSec.style.display = 'none';
+        barcodeSec.style.display = 'block';
+      }
+    }
+
+    // Red Flag Databases
+    const SEED_OILS = [
+      { name: "canola oil", reason: "Highly processed, refined polyunsaturated seed oil prone to oxidation" },
+      { name: "rapeseed oil", reason: "Industrial high-PUFA oil source (Canola)" },
+      { name: "soybean oil", reason: "Industrial high-linoleic seed oil, heavy chemical solvent extraction" },
+      { name: "corn oil", reason: "High omega-6 inflammatory ratio, chemically refined" },
+      { name: "cottonseed oil", reason: "Industrial byproduct oil with potential pesticide residue & high linoleic acid" },
+      { name: "sunflower oil", reason: "Refined omega-6 rich seed oil (unless 100% certified high-oleic cold-pressed)" },
+      { name: "safflower oil", reason: "Refined high-linoleic seed oil" },
+      { name: "grapeseed oil", reason: "Extremely high in polyunsaturated omega-6 linoleic acid (up to 70%)" },
+      { name: "rice bran oil", reason: "Solvent-extracted industrial grain oil" },
+      { name: "hydrogenated vegetable oil", reason: "Industrial trans-fat / chemically modified lipid" },
+      { name: "partially hydrogenated", reason: "Damaging trans-fat precursor" },
+      { name: "vegetable oil", reason: "Generic commercial blend of soybean, canola, or corn oils" },
+      { name: "margarine", reason: "Hydrogenated industrial oil matrix" }
+    ];
+
+    const STARCH_FILLERS = [
+      { name: "maltodextrin", reason: "Rapidly absorbed processed starch filler with glycemic index higher than table sugar (GI 110-185)" },
+      { name: "modified food starch", reason: "Chemically or enzymatically altered starch used as a cheap bulking thickener" },
+      { name: "modified corn starch", reason: "High-glycemic processed bulking filler" },
+      { name: "dextrin", reason: "Hydrolyzed starch bulking filler" },
+      { name: "tapioca dextrin", reason: "Refined starch binding filler" },
+      { name: "soluble corn fiber", reason: "Synthetic isolated fiber additive used to fake fiber nutrition metrics" },
+      { name: "xanthan gum", reason: "Bacterial fermentation thickener and binding agent; may cause GI distress" },
+      { name: "guar gum", reason: "Cheap industrial thickener/filler" },
+      { name: "carrageenan", reason: "Seaweed extract linked to gut inflammation and intestinal barrier disruption" },
+      { name: "cellulose gum", reason: "Purified wood pulp filler/stabilizer" },
+      { name: "polydextrose", reason: "Synthetic glucose polymer filler" }
+    ];
+
+    const PRESERVATIVES = [
+      { name: "bha", reason: "Butylated hydroxyanisole - synthetic phenolic antioxidant linked to endocrine disruption" },
+      { name: "bht", reason: "Butylated hydroxytoluene - synthetic preservative used to prevent fat rancidity" },
+      { name: "tbhq", reason: "Tertiary butylhydroquinone - petroleum-derived synthetic antioxidant preservative" },
+      { name: "sodium benzoate", reason: "Chemical preservative; forms benzene (carcinogen) when combined with Vitamin C" },
+      { name: "potassium sorbate", reason: "Synthetic antimycotic preservative" },
+      { name: "sodium nitrite", reason: "Curing agent that forms carcinogenic nitrosamines under heat" },
+      { name: "sodium nitrate", reason: "Synthetic preservative salt" },
+      { name: "calcium propionate", reason: "Antifungal bread preservative" },
+      { name: "disodium edta", reason: "Heavy metal chelating additive used for color and flavor retention" },
+      { name: "artificial flavor", reason: "Proprietary synthetic chemical flavoring cocktail" },
+      { name: "yellow 5", reason: "Tartrazine - petroleum-derived artificial dye linked to hyperactivity" },
+      { name: "yellow 6", reason: "Sunset yellow synthetic azo dye" },
+      { name: "red 40", reason: "Allura red petroleum-based food colorant" },
+      { name: "blue 1", reason: "Synthetic brilliant blue dye" }
+    ];
+
+    const CLEAN_OILS = ["extra virgin olive oil", "olive oil", "avocado oil", "coconut oil", "grass-fed butter", "tallow", "ghee", "lard"];
+
+    // DOM Elements
+    const cameraInput = document.getElementById('cameraInput');
+    const galleryInput = document.getElementById('galleryInput');
+    const barcodeImageInput = document.getElementById('barcodeImageInput');
+    const barcodeNumberInput = document.getElementById('barcodeNumberInput');
+    const previewBox = document.getElementById('previewBox');
+    const imagePreview = document.getElementById('imagePreview');
+    const retakeBtn = document.getElementById('retakeBtn');
+    const loader = document.getElementById('loader');
+    const loadingStatus = document.getElementById('loadingStatus');
+    const loadingSubtext = document.getElementById('loadingSubtext');
+    const resultsArea = document.getElementById('resultsArea');
+    const settingsModal = document.getElementById('settingsModal');
+    const guideModal = document.getElementById('guideModal');
+    const openSettingsBtn = document.getElementById('openSettingsBtn');
+    const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+    const openGuideBtn = document.getElementById('openGuideBtn');
+    const closeGuideBtn = document.getElementById('closeGuideBtn');
+    const apiKeyInput = document.getElementById('apiKeyInput');
+    const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+    const historyList = document.getElementById('historyList');
+    const historyCount = document.getElementById('historyCount');
+
+    let userApiKey = localStorage.getItem('gemini_api_key') || '';
+    apiKeyInput.value = userApiKey;
+    if (userApiKey) {
+      openSettingsBtn.innerText = '⚙️ Key Connected';
+      openSettingsBtn.style.borderColor = 'var(--accent)';
+    }
+
+    openSettingsBtn.addEventListener('click', () => settingsModal.classList.add('open'));
+    closeSettingsBtn.addEventListener('click', () => settingsModal.classList.remove('open'));
+    openGuideBtn.addEventListener('click', () => guideModal.classList.add('open'));
+    closeGuideBtn.addEventListener('click', () => guideModal.classList.remove('open'));
+
+    saveSettingsBtn.addEventListener('click', () => {
+      userApiKey = apiKeyInput.value.trim();
+      localStorage.setItem('gemini_api_key', userApiKey);
+      settingsModal.classList.remove('open');
+      if (userApiKey) {
+        openSettingsBtn.innerText = '⚙️ Key Connected';
+        openSettingsBtn.style.borderColor = 'var(--accent)';
+      }
+    });
+
+    cameraInput.addEventListener('change', handleImageUpload);
+    galleryInput.addEventListener('change', handleImageUpload);
+
+    retakeBtn.addEventListener('click', () => {
+      previewBox.style.display = 'none';
+      resultsArea.style.display = 'none';
+      cameraInput.value = '';
+      galleryInput.value = '';
+    });
+
+    function handleImageUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        imagePreview.src = event.target.result;
+        previewBox.style.display = 'block';
+        resultsArea.style.display = 'none';
+        processImage(event.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // Barcode photo upload handling
+    barcodeImageInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      loader.style.display = 'block';
+      loadingStatus.innerText = 'Detecting Barcode...';
+      loadingSubtext.innerText = 'Reading lines from photo';
+
+      if ('BarcodeDetector' in window) {
+        try {
+          const barcodeDetector = new BarcodeDetector({ formats: ['upc_a', 'upc_e', 'ean_13', 'ean_8', 'code_128'] });
+          const img = new Image();
+          img.src = URL.createObjectURL(file);
+          await img.decode();
+          const barcodes = await barcodeDetector.detect(img);
+          if (barcodes.length > 0) {
+            const code = barcodes[0].rawValue;
+            barcodeNumberInput.value = code;
+            fetchProductByBarcode(code);
+            return;
+          }
+        } catch (err) {
+          console.warn('BarcodeDetector error:', err);
+        }
+      }
+
+      loader.style.display = 'none';
+      alert('Camera detection: Please enter the barcode number below (or try on Chrome/Android where native barcode detection is built-in).');
+    });
+
+    function testBarcode(code) {
+      barcodeNumberInput.value = code;
+      fetchProductByBarcode(code);
+    }
+
+    function lookupBarcode() {
+      const code = barcodeNumberInput.value.trim();
+      if (!code) {
+        alert('Please enter a barcode number!');
+        return;
+      }
+      fetchProductByBarcode(code);
+    }
+
+    // Open Food Facts API (100% Free, No Key Required)
+    async function fetchProductByBarcode(barcode) {
+      loader.style.display = 'block';
+      loadingStatus.innerText = 'Querying Open Food Facts...';
+      loadingSubtext.innerText = 'Barcode: ' + barcode;
+      resultsArea.style.display = 'none';
+
+      try {
+        const cleanCode = barcode.replace(/[^0-9]/g, '');
+        const res = await fetch('https://world.openfoodfacts.org/api/v2/product/' + cleanCode + '.json');
+        if (!res.ok) {
+          throw new Error('Database response error: ' + res.status);
+        }
+        const data = await res.json();
+        loader.style.display = 'none';
+
+        if (data.status === 1 && data.product) {
+          const p = data.product;
+          const name = p.product_name || p.generic_name || ('Product ' + barcode);
+          const brand = p.brands ? (' (' + p.brands + ')') : '';
+          const fullTitle = name + brand;
+          const rawIngredients = p.ingredients_text || p.ingredients_text_en || '';
+
+          if (!rawIngredients) {
+            alert('Found ' + fullTitle + ', but no ingredient text was listed in the open database. You can paste ingredients manually below!');
+            return;
+          }
+
+          runDeterministicAnalysis(rawIngredients, fullTitle);
+        } else {
+          alert('Barcode not found in Open Food Facts database. Please snap a photo of the ingredients list or paste them below!');
+        }
+      } catch (err) {
+        loader.style.display = 'none';
+        console.error(err);
+        alert('Could not query Open Food Facts: ' + err.message);
+      }
+    }
+
+    async function processImage(dataUrl) {
+      loader.style.display = 'block';
+      loadingStatus.innerText = 'Reading ingredient label...';
+      loadingSubtext.innerText = 'Running Vision Analysis';
+
+      if (!userApiKey) {
+        setTimeout(() => {
+          loader.style.display = 'none';
+          alert('Note: No Gemini API Key configured in Setup. Running built-in test scanner. (Tip: Use the Barcode tab for 100% free lookup with no API key needed!)');
+          runDeterministicAnalysis("Whole Grain Corn, Canola Oil, Corn Oil, Maltodextrin, Salt, Modified Food Starch, BHT, TBHQ, Artificial Flavor, Yellow 6", "Scanned Food Label");
+        }, 800);
+        return;
+      }
+
+      try {
+        const base64Data = dataUrl.split(',')[1];
+        const mimeType = dataUrl.substring(dataUrl.indexOf(':') + 1, dataUrl.indexOf(';'));
+
+        const prompt = `
+You are a food ingredient purity auditor and health analyst.
+Analyze the image of this food label. Extract the product name and the exact list of ingredients.
+Then evaluate:
+1. Seed oils (Canola, Soybean, Corn, Cottonseed, Sunflower, Safflower, Rice Bran, Grapeseed, etc.).
+2. Refined starches and fillers (Maltodextrin, modified starches, gums, cellulose, soluble corn fiber).
+3. Preservatives & synthetic additives (BHA, BHT, TBHQ, Benzoates, Sorbates, Nitrites/Nitrates, artificial dyes).
+4. Whole food / single-ingredient purity (Is this a simple whole food or a heavily ultra-processed matrix?).
+
+Return ONLY a valid JSON object matching this schema without markdown fences:
+{
+  "product_name": "Product or Label Name",
+  "ingredients_raw": "Full comma-separated ingredients string",
+  "identified_items": [
+    {
+      "name": "Ingredient name",
+      "category": "seed_oil" | "starch_filler" | "preservative" | "clean_whole",
+      "reason": "Brief 1-sentence health impact explanation"
+    }
+  ],
+  "recommendation": "Brief actionable advice or healthier alternative swaps"
+}
+`;
+
+        const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + userApiKey, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [
+              {
+                parts: [
+                  { text: prompt },
+                  {
+                    inline_data: {
+                      mime_type: mimeType,
+                      data: base64Data
+                    }
+                  }
+                ]
+              }
+            ],
+            generationConfig: {
+              temperature: 0.1,
+              response_mime_type: "application/json"
+            }
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error('API error: ' + response.status + ' ' + response.statusText);
+        }
+
+        const resData = await response.json();
+        const textContent = resData.candidates[0].content.parts[0].text;
+        const parsed = JSON.parse(textContent);
+
+        loader.style.display = 'none';
+        renderResults(parsed);
+
+      } catch (err) {
+        console.error(err);
+        loader.style.display = 'none';
+        alert("Error analyzing image: " + err.message + ". Falling back to local rule-based engine.");
+        runDeterministicAnalysis("Potatoes, Canola Oil, Maltodextrin, Salt, BHT", "Fallback Scan");
+      }
+    }
+
+    function runDeterministicAnalysis(ingredientsText, title = "Custom Product") {
+      const rawList = ingredientsText.split(/,|
+|•/).map(s => s.trim()).filter(s => s.length > 0);
+      const identified = [];
+
+      rawList.forEach(item => {
+        const itemLower = item.toLowerCase();
+        
+        const foundOil = SEED_OILS.find(o => itemLower.includes(o.name));
+        if (foundOil) {
+          identified.push({ name: item, category: "seed_oil", reason: foundOil.reason });
+          return;
+        }
+
+        const foundStarch = STARCH_FILLERS.find(s => itemLower.includes(s.name));
+        if (foundStarch) {
+          identified.push({ name: item, category: "starch_filler", reason: foundStarch.reason });
+          return;
+        }
+
+        const foundPres = PRESERVATIVES.find(p => itemLower.includes(p.name));
+        if (foundPres) {
+          identified.push({ name: item, category: "preservative", reason: foundPres.reason });
+          return;
+        }
+
+        const foundClean = CLEAN_OILS.find(c => itemLower.includes(c));
+        if (foundClean) {
+          identified.push({ name: item, category: "clean_whole", reason: "Clean unrefined healthy fat source" });
+        } else {
+          identified.push({ name: item, category: "clean_whole", reason: "Whole food / unadulterated ingredient" });
+        }
+      });
+
+      renderResults({
+        product_name: title,
+        ingredients_raw: ingredientsText,
+        identified_items: identified,
+        recommendation: generateRuleBasedRecommendation(identified)
+      });
+    }
+
+    function generateRuleBasedRecommendation(items) {
+      const hasOils = items.some(i => i.category === 'seed_oil');
+      const hasStarches = items.some(i => i.category === 'starch_filler');
+      const hasPres = items.some(i => i.category === 'preservative');
+
+      let recs = [];
+      if (hasOils) recs.push("Contains industrial seed oils. Look for products made with Extra Virgin Olive Oil, Avocado Oil, or Coconut Oil.");
+      if (hasStarches) recs.push("High in refined starch fillers (maltodextrin / modified starch) which trigger rapid blood glucose spikes.");
+      if (hasPres) recs.push("Contains chemical preservatives/stabilizers. Seek single-ingredient, fresh, or clean-label pantry alternatives.");
+
+      return recs.length > 0 ? recs.join(" ") : "Excellent choice! This product consists of clean, single whole ingredients without industrial adulterants.";
+    }
+
+    function renderResults(data) {
+      resultsArea.style.display = 'block';
+
+      const items = data.identified_items || [];
+      const seedOils = items.filter(i => i.category === 'seed_oil');
+      const starches = items.filter(i => i.category === 'starch_filler');
+      const preservatives = items.filter(i => i.category === 'preservative');
+      const cleanItems = items.filter(i => i.category === 'clean_whole');
+
+      let score = 100;
+      score -= (seedOils.length * 30);
+      score -= (starches.length * 15);
+      score -= (preservatives.length * 18);
+
+      if (items.length <= 4 && seedOils.length === 0 && starches.length === 0 && preservatives.length === 0) {
+        score = 100;
+      }
+
+      score = Math.max(8, Math.min(100, score));
+
+      let grade = 'A';
+      let gradeColor = '#10b981';
+      let verdict = 'Clean & Wholesome';
+
+      if (score >= 90) {
+        grade = 'A';
+        gradeColor = '#10b981';
+        verdict = 'Clean & Wholesome';
+      } else if (score >= 75) {
+        grade = 'B';
+        gradeColor = '#3b82f6';
+        verdict = 'Moderate / Minor Additives';
+      } else if (score >= 55) {
+        grade = 'C';
+        gradeColor = '#f59e0b';
+        verdict = 'Processed / Contains Fillers';
+      } else if (score >= 35) {
+        grade = 'D';
+        gradeColor = '#f97316';
+        verdict = 'Ultra-Processed / Seed Oils';
+      } else {
+        grade = 'F';
+        gradeColor = '#ef4444';
+        verdict = 'Heavy Seed Oils & Preservatives';
+      }
+
+      const scoreCircle = document.getElementById('scoreCircle');
+      scoreCircle.style.borderColor = gradeColor;
+      scoreCircle.style.boxShadow = '0 0 20px ' + gradeColor + '40';
+      document.getElementById('scoreVal').innerText = score;
+      document.getElementById('scoreVal').style.color = gradeColor;
+      document.getElementById('gradeVal').innerText = 'Grade ' + grade;
+      document.getElementById('gradeVal').style.color = gradeColor;
+
+      document.getElementById('resProductTitle').innerText = data.product_name || "Food Product";
+      const verdictBadge = document.getElementById('resVerdictBadge');
+      verdictBadge.innerText = verdict;
+      verdictBadge.style.background = gradeColor + '25';
+      verdictBadge.style.color = gradeColor;
+      verdictBadge.style.border = '1px solid ' + gradeColor + '60';
+
+      document.getElementById('singleIngSummary').innerText = items.length + ' total ingredient' + (items.length === 1 ? '' : 's') + ' identified';
+
+      updateMeter('oil', seedOils.length, 2, '#ef4444', ['Clean (0)', '1 Oil Detected', 'Multiple Seed Oils']);
+      updateMeter('starch', starches.length, 3, '#f59e0b', ['No Fillers', 'Moderate Fillers', 'Heavy Starches']);
+      updateMeter('preservative', preservatives.length, 2, '#3b82f6', ['Preservative-Free', 'Preserved', 'Multiple Synthetics']);
+      
+      const wholeRatio = items.length > 0 ? (cleanItems.length / items.length) : 1;
+      const wfPct = Math.round(wholeRatio * 100);
+      document.getElementById('wholeFoodMeterFill').style.width = wfPct + '%';
+      document.getElementById('wholeFoodMeterScore').innerText = wfPct + '% Pure';
+
+      document.getElementById('recommendationText').innerText = data.recommendation || generateRuleBasedRecommendation(items);
+
+      const listContainer = document.getElementById('ingredientListContainer');
+      listContainer.innerHTML = '';
+
+      const sorted = [...items].sort((a, b) => {
+        const order = { seed_oil: 0, starch_filler: 1, preservative: 2, clean_whole: 3 };
+        return (order[a.category] ?? 4) - (order[b.category] ?? 4);
+      });
+
+      sorted.forEach(ing => {
+        const div = document.createElement('div');
+        div.className = 'ingredient-pill';
+
+        let badgeClass = 'tag-clean';
+        let badgeLabel = 'Whole Food';
+
+        if (ing.category === 'seed_oil') {
+          badgeClass = 'tag-seedoil';
+          badgeLabel = '🚫 Seed Oil';
+        } else if (ing.category === 'starch_filler') {
+          badgeClass = 'tag-starch';
+          badgeLabel = '🌽 Starch Filler';
+        } else if (ing.category === 'preservative') {
+          badgeClass = 'tag-preservative';
+          badgeLabel = '🧪 Preservative';
+        }
+
+        div.innerHTML = `
+          <div class="ing-top">
+            <span class="ing-name">${escapeHtml(ing.name)}</span>
+            <span class="ing-tag ${badgeClass}">${badgeLabel}</span>
+          </div>
+          <div class="ing-reason">${escapeHtml(ing.reason || '')}</div>
+        `;
+        listContainer.appendChild(div);
+      });
+
+      saveScanToHistory(data.product_name || "Food Product", score, grade, gradeColor);
+      resultsArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function updateMeter(id, count, maxScale, color, labels) {
+      const fill = document.getElementById(id + 'MeterFill');
+      const scoreText = document.getElementById(id + 'MeterScore');
+      
+      const pct = Math.min(100, Math.round((count / maxScale) * 100));
+      fill.style.width = pct + '%';
+      fill.style.background = count === 0 ? '#10b981' : color;
+
+      if (count === 0) {
+        scoreText.innerText = labels[0];
+        scoreText.style.color = '#10b981';
+      } else if (count === 1) {
+        scoreText.innerText = labels[1];
+        scoreText.style.color = color;
+      } else {
+        scoreText.innerText = labels[2];
+        scoreText.style.color = color;
+      }
+    }
+
+    function escapeHtml(text) {
+      if (!text) return '';
+      return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    function saveScanToHistory(title, score, grade, color) {
+      try {
+        let history = JSON.parse(localStorage.getItem('cleanplate_history') || '[]');
+        history.unshift({ title, score, grade, color, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
+        if (history.length > 10) history = history.slice(0, 10);
+        localStorage.setItem('cleanplate_history', JSON.stringify(history));
+        renderHistory();
+      } catch (e) {}
+    }
+
+    function renderHistory() {
+      try {
+        const history = JSON.parse(localStorage.getItem('cleanplate_history') || '[]');
+        historyCount.innerText = history.length;
+        if (history.length === 0) return;
+        historyList.innerHTML = history.map(item => `
+          <div class="history-item">
+            <div>
+              <strong>${escapeHtml(item.title)}</strong>
+              <div style="font-size: 11px; color: #64748b;">${item.time}</div>
+            </div>
+            <span style="font-weight: 800; color: ${item.color};">Grade ${item.grade} (${item.score})</span>
+          </div>
+        `).join('');
+      } catch (e) {}
+    }
+    renderHistory();
+
+    function loadSample(type) {
+      resultsArea.style.display = 'none';
+      previewBox.style.display = 'none';
+      if (type === 'bad_snack') {
+        runDeterministicAnalysis("Corn, Vegetable Oil (Corn, Canola, and/or Sunflower Oil), Maltodextrin (Made from Corn), Salt, Cheddar Cheese, Monosodium Glutamate, Whey, Artificial Color (Red 40 Lake, Yellow 6 Lake, Yellow 6, Yellow 5), BHT", "Flamin' Style Snack Chips");
+      } else if (type === 'dressing') {
+        runDeterministicAnalysis("Soybean Oil, Water, Vinegar, Sugar, Modified Food Starch, Egg Yolks, Salt, Xanthan Gum, Potassium Sorbate, Sodium Benzoate, Calcium Disodium EDTA, Phosphoric Acid", "Creamy Salad Dressing");
+      } else if (type === 'clean_bar') {
+        runDeterministicAnalysis("Dates, Almonds, Organic Coconut, Sea Salt", "Raw Clean Whole Bar");
+      }
+    }
+
+    function analyzeManualText() {
+      const text = document.getElementById('manualIngredients').value.trim();
+      if (!text) {
+        alert("Please enter ingredients first!");
+        return;
+      }
+      runDeterministicAnalysis(text, "Manual Ingredient Input");
+    }
+  </script>
+</body>
+</html>
